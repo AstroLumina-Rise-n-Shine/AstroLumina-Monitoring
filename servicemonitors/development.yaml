@@ -1,5 +1,5 @@
 ---
-# Scrapes the development APIs (namespace astrolumina-dev) on their /metrics
+# Scrapes the development APIs (namespace astrolumina-development) on their /metrics
 # endpoints. The frontend is intentionally absent: it is static Nginx with no
 # metrics endpoint (its traffic is visible via the Traefik metrics instead).
 # The `release: monitoring` label must match the Prometheus
@@ -8,7 +8,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: astrolumina-dev-astrology-api
+  name: astrolumina-development-astrology-api
   namespace: monitoring
   labels:
     release: monitoring
@@ -16,7 +16,7 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - astrolumina-dev
+      - astrolumina-development
   selector:
     matchLabels:
       app.kubernetes.io/name: astrology-api
@@ -29,7 +29,7 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: astrolumina-dev-booking-api
+  name: astrolumina-development-booking-api
   namespace: monitoring
   labels:
     release: monitoring
@@ -37,7 +37,7 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - astrolumina-dev
+      - astrolumina-development
   selector:
     matchLabels:
       app.kubernetes.io/name: booking-api
@@ -50,7 +50,7 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: astrolumina-dev-payment-api
+  name: astrolumina-development-payment-api
   namespace: monitoring
   labels:
     release: monitoring
@@ -58,7 +58,7 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - astrolumina-dev
+      - astrolumina-development
   selector:
     matchLabels:
       app.kubernetes.io/name: payment-api

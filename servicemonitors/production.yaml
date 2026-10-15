@@ -1,5 +1,5 @@
 ---
-# Scrapes the production LIVE color (namespace astrolumina-prod). Targeting
+# Scrapes the production LIVE color (namespace astrolumina-production). Targeting
 # the *-live Services (not blue/green directly) keeps the scrape target
 # stable across blue/green flips. The frontend is intentionally absent: it is
 # static Nginx with no metrics endpoint.
@@ -17,7 +17,7 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - astrolumina-prod
+      - astrolumina-production
   selector:
     matchLabels:
       app.kubernetes.io/name: astrology-api
@@ -38,7 +38,7 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - astrolumina-prod
+      - astrolumina-production
   selector:
     matchLabels:
       app.kubernetes.io/name: booking-api
@@ -59,7 +59,7 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - astrolumina-prod
+      - astrolumina-production
   selector:
     matchLabels:
       app.kubernetes.io/name: payment-api
