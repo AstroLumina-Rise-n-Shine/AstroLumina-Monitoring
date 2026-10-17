@@ -1,0 +1,93 @@
+# AstroLumina custom dashboard, auto-loaded by the Grafana sidecar
+# (grafana_dashboard: "1" label, folder: AstroLumina).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: astrology-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: '1'
+  annotations:
+    grafana_folder: AstroLumina
+data:
+  astrology.json: "{\n  \"uid\": \"astrolumina-astrology\",\n  \"title\": \"AstroLumina Astrology API\",\n  \"tags\": [\n    \"astrolumina\"\n  ],\n  \"timezone\": \"browser\",\n  \"schemaVersion\": 41,\n\
+    \  \"version\": 1,\n  \"refresh\": \"30s\",\n  \"time\": {\n    \"from\": \"now-6h\",\n    \"to\": \"now\"\n  },\n  \"templating\": {\n    \"list\": [\n      {\n        \"name\": \"ds\",\n        \"\
+    label\": \"Datasource\",\n        \"type\": \"datasource\",\n        \"query\": {\n          \"type\": \"prometheus\",\n          \"query\": \"prometheus\"\n        },\n        \"current\": {\n    \
+    \      \"text\": \"Prometheus\",\n          \"value\": \"prometheus\"\n        },\n        \"hide\": 0,\n        \"refresh\": 1,\n        \"options\": []\n      },\n      {\n        \"name\": \"env\"\
+    ,\n        \"label\": \"Environment\",\n        \"type\": \"custom\",\n        \"query\": \"development,staging,production\",\n        \"current\": {\n          \"text\": \"production\",\n         \
+    \ \"value\": \"production\"\n        },\n        \"options\": [\n          {\n            \"selected\": false,\n            \"value\": \"development\",\n            \"text\": \"development\"\n     \
+    \     },\n          {\n            \"selected\": false,\n            \"value\": \"staging\",\n            \"text\": \"staging\"\n          },\n          {\n            \"selected\": true,\n        \
+    \    \"value\": \"production\",\n            \"text\": \"production\"\n          }\n        ],\n        \"hide\": 0,\n        \"includeAll\": false,\n        \"multi\": false\n      }\n    ]\n  },\n\
+    \  \"panels\": [\n    {\n      \"id\": null,\n      \"title\": \"HPA replicas (current vs desired)\",\n      \"type\": \"stat\",\n      \"datasource\": {\n        \"type\": \"prometheus\",\n       \
+    \ \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 4,\n        \"w\": 6,\n        \"x\": 0,\n        \"y\": 0\n      },\n      \"description\": \"Feeds on the per-pod custom metric\
+    \ api_requests_per_minute (target 20 req/min per pod).\",\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"kube_horizontalpodautoscaler_status_current_replicas{namespace=~\\\"astrolumina-$env\\\",horizontalpoda\
+        utoscaler=~\\\
+    \"astrology.*\\\"}\",\n          \"legendFormat\": \"current\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        },\n       \
+    \ {\n          \"refId\": \"B\",\n          \"expr\": \"kube_horizontalpodautoscaler_status_desired_replicas{namespace=~\\\"astrolumina-$env\\\",horizontalpodautoscaler=~\\\"astrology.*\\\"}\",\n          \"legendFormat\": \"desired\"\
+    ,\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n         \
+    \ \"unit\": \"short\"\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"reduceOptions\": {\n          \"calcs\": [\n            \"lastNotNull\"\n          ],\n      \
+    \    \"fields\": \"\",\n          \"values\": false\n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"Pods ready / desired\",\n      \"type\": \"stat\",\n      \"datasource\"\
+    : {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 4,\n        \"w\": 6,\n        \"x\": 6,\n        \"y\": 0\n      },\n      \"description\"\
+    : \"\",\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"kube_deployment_status_replicas_ready{namespace=~\\\"astrolumina-$env\\\",deployment=~\\\"astrology.*\\\"}\",\n          \"legendFormat\": \"\
+    ready\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        },\n        {\n          \"refId\": \"B\",\n          \"expr\": \"\
+    kube_deployment_spec_replicas{namespace=~\\\"astrolumina-$env\\\",deployment=~\\\"astrology.*\\\"}\",\n          \"legendFormat\": \"desired\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\":\
+    \ \"${ds}\"\n          }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"short\"\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n\
+    \        \"reduceOptions\": {\n          \"calcs\": [\n            \"lastNotNull\"\n          ],\n          \"fields\": \"\",\n          \"values\": false\n        }\n      }\n    },\n    {\n      \"\
+    id\": null,\n      \"title\": \"Requests / min per pod (excl. /health)\",\n      \"type\": \"timeseries\",\n      \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n \
+    \     },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 0,\n        \"y\": 4\n      },\n      \"description\": \"Mirrors the api_requests_per_minute custom metric consumed\
+    \ by the HPA (target 20/min per pod).\",\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"sum by (pod) (rate(http_requests_total{service=\\\"astrology-api\\\",namespace=~\\\"astrolumina-$env\\\",route!=\\\"/hea\
+        lth\\\"}[2m])) * 60\",\n          \"legendFormat\": \"{{pod}}\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n \
+    \         }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"short\"\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"\
+    legend\": {\n          \"displayMode\": \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n          ]\n        },\n        \"tooltip\": {\n     \
+    \     \"mode\": \"multi\",\n          \"sort\": \"none\"\n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"Requests / min total (excl. /health)\",\n      \"type\": \"timeseries\"\
+    ,\n      \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 12,\n        \"y\": 4\n\
+    \      },\n      \"description\": \"\",\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"sum(rate(http_requests_total{service=\\\"astrology-api\\\",namespace=~\\\"astrolumina-$env\\\",route!=\\\"/health\\\"}[2m\
+        ])) * 60\",\n          \"legendFormat\": \"astrology-api\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n \
+    \         }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"short\"\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"\
+    legend\": {\n          \"displayMode\": \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n          ]\n        },\n        \"tooltip\": {\n     \
+    \     \"mode\": \"multi\",\n          \"sort\": \"none\"\n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"Requests / min by status\",\n      \"type\": \"timeseries\",\n  \
+    \    \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 0,\n        \"y\": 12\n \
+    \     },\n      \"description\": \"\",\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"sum by (status) (rate(http_requests_total{service=\\\"astrology-api\\\",namespace=~\\\"astrolumina-$env\\\",route!=\\\"/he\
+        alth\\\"}[2m])) * 60\",\n          \"legendFormat\": \"{{status}}\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n\
+    \          }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"short\"\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"\
+    legend\": {\n          \"displayMode\": \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n          ]\n        },\n        \"tooltip\": {\n     \
+    \     \"mode\": \"multi\",\n          \"sort\": \"none\"\n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"5xx ratio\",\n      \"type\": \"timeseries\",\n      \"datasource\"\
+    : {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 12,\n        \"y\": 12\n      },\n      \"description\"\
+    : \"\",\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"sum(rate(http_requests_total{service=\\\"astrology-api\\\",namespace=~\\\"astrolumina-$env\\\",status=~\\\"5..\\\"}[2m]))\
+    \ / sum(rate(http_requests_total{service=\\\"astrology-api\\\",namespace=~\\\"astrolumina-$env\\\"}[2m]))\",\n          \"legendFormat\": \"5xx ratio\",\n          \"datasource\": {\n            \"type\": \"prometheus\"\
+    ,\n            \"uid\": \"${ds}\"\n          }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"percentunit\"\n        },\n        \"overrides\": []\n \
+    \     },\n      \"options\": {\n        \"legend\": {\n          \"displayMode\": \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n          ]\n\
+    \        },\n        \"tooltip\": {\n          \"mode\": \"multi\",\n          \"sort\": \"none\"\n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"Latency p50 / p95 / p99\"\
+    ,\n      \"type\": \"timeseries\",\n      \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n  \
+    \      \"x\": 0,\n        \"y\": 20\n      },\n      \"description\": \"\",\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"histogram_quantile(0.50, sum by (le)\
+    \ (rate(http_request_duration_seconds_bucket{service=\\\"astrology-api\\\",namespace=~\\\"astrolumina-$env\\\"}[5m])))\",\n          \"legendFormat\": \"p50\",\n          \"datasource\": {\n            \"type\":\
+    \ \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        },\n        {\n          \"refId\": \"B\",\n          \"expr\": \"histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service=\\\
+    \"astrology-api\\\",namespace=~\\\"astrolumina-$env\\\"}[5m])))\",\n          \"legendFormat\": \"p95\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n     \
+    \     }\n        },\n        {\n          \"refId\": \"C\",\n          \"expr\": \"histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{service=\\\"astrology-api\\\",namespace=~\\\"astrolumina-$env\\\"}[5m])))\",\n     \
+             \"legendFormat\": \"p99\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        }\n      ],\n\
+    \      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"s\"\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"legend\": {\n          \"displayMode\"\
+    : \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n          ]\n        },\n        \"tooltip\": {\n          \"mode\": \"multi\",\n          \"\
+    sort\": \"none\"\n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"Top 5 routes by req/min (excl. /health)\",\n      \"type\": \"timeseries\",\n      \"datasource\": {\n  \
+    \      \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 12,\n        \"y\": 20\n      },\n      \"description\"\
+    : \"\",\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"topk(5, sum by (route) (rate(http_requests_total{service=\\\"astrology-api\\\",namespace=~\\\"astrolumina-$env\\\",route!=\\\
+    \"/health\\\"}[2m])) * 60)\",\n          \"legendFormat\": \"{{route}}\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        }\n\
+    \      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"short\"\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"legend\": {\n          \"\
+    displayMode\": \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n          ]\n        },\n        \"tooltip\": {\n          \"mode\": \"multi\",\n\
+    \          \"sort\": \"none\"\n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"CPU per pod\",\n      \"type\": \"timeseries\",\n      \"datasource\": {\n        \"type\":\
+    \ \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 0,\n        \"y\": 28\n      },\n      \"description\": \"\",\n \
+    \     \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\\\"astrolumina-$env\\\",pod=~\\\"astrology.*\\\",container!=\\\"\\\"}[5m]))\",\n    \
+    \      \"legendFormat\": \"{{pod}}\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        }\n      ],\n      \"fieldConfig\": {\n\
+    \        \"defaults\": {\n          \"unit\": \"short\"\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"legend\": {\n          \"displayMode\": \"table\",\n       \
+    \   \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n          ]\n        },\n        \"tooltip\": {\n          \"mode\": \"multi\",\n          \"sort\": \"none\"\n \
+    \       }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"Memory working set per pod\",\n      \"type\": \"timeseries\",\n      \"datasource\": {\n        \"type\": \"prometheus\",\n\
+    \        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 12,\n        \"y\": 28\n      },\n      \"description\": \"\",\n      \"targets\":\
+    \ [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"container_memory_working_set_bytes{namespace=~\\\"astrolumina-$env\\\",pod=~\\\"astrology.*\\\",container!=\\\"\\\"}\",\n          \"legendFormat\": \"{{pod}}\",\n   \
+    \       \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\"\
+    : \"bytes\"\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"legend\": {\n          \"displayMode\": \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\"\
+    : [\n            \"lastNotNull\"\n          ]\n        },\n        \"tooltip\": {\n          \"mode\": \"multi\",\n          \"sort\": \"none\"\n        }\n      }\n    },\n    {\n      \"id\": null,\n\
+    \      \"title\": \"Restarts last 1h\",\n      \"type\": \"timeseries\",\n      \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n   \
+    \     \"h\": 8,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\": 36\n      },\n      \"description\": \"\",\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"\
+    increase(kube_pod_container_status_restarts_total{namespace=~\\\"astrolumina-$env\\\",pod=~\\\"astrology.*\\\"}[1h])\",\n          \"legendFormat\": \"{{pod}}\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n  \
+    \          \"uid\": \"${ds}\"\n          }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"short\"\n        },\n        \"overrides\": []\n      },\n \
+    \     \"options\": {\n        \"legend\": {\n          \"displayMode\": \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n          ]\n        },\n\
+    \        \"tooltip\": {\n          \"mode\": \"multi\",\n          \"sort\": \"none\"\n        }\n      }\n    }\n  ]\n}"

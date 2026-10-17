@@ -1,0 +1,8 @@
+# Local lint config for dashboards/: the files embed Grafana dashboard JSON
+# as one string per PromQL query, and long JSON strings cannot be wrapped.
+# Same relaxed rules as ../.yamllint.yml, wider line limit.
+extends: relaxed
+
+rules:
+  line-length:
+    max: 260
