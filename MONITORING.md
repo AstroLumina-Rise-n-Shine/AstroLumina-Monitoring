@@ -254,7 +254,7 @@ Prometheus API and exposes a per-pod custom metric via
 `custom.metrics.k8s.io/v1beta1`:
 
 - `api_requests_per_minute` =
-  `sum(rate(http_requests_total{route!="/health"}[2m])) * 60` per pod, with
+  `sum by (namespace, pod) (rate(http_requests_total{route!="/health"}[2m])) * 60` per pod, with
   `namespace`/`pod` mapped as Kubernetes resources from the scraped series.
   The `route="/health"` filter excludes healthcheck traffic so probes cannot
   pin the replica count.

@@ -29,6 +29,6 @@ prometheus-adapter:
         name:
           matches: '^http_requests_total$'
           as: api_requests_per_minute
-        metricsQuery: 'sum(rate(http_requests_total{route!="/health",<<.LabelMatchers>>}[2m])) * 60 by (<<.GroupBy>>)'
+        metricsQuery: 'sum by (<<.GroupBy>>) (rate(http_requests_total{route!="/health",<<.LabelMatchers>>}[2m])) * 60'
   serviceMonitor:
     enabled: true

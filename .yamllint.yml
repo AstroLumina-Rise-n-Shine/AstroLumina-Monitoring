@@ -2,9 +2,10 @@
 # comment lines in the manifests.
 extends: relaxed
 
-# Dashboard YAML files embed the Grafana dashboard JSON as one string per
-# query; long PromQL lines cannot be wrapped. They are linted with the same
-# relaxed rules but a wider line-length (dashboards/.yamllint.yml).
+# Dashboard YAML files embed single-line Grafana JSON (long un-wrappable
+# lines), so they are excluded from this repo-root lint run and carry their
+# own config: use them from within the folder (`cd dashboards && yamllint .`).
+# CI lint/build coverage for dashboards is a planned follow-up.
 ignore: |
   dashboards/
 
