@@ -2,6 +2,12 @@
 # comment lines in the manifests.
 extends: relaxed
 
+# Dashboard YAML files embed the Grafana dashboard JSON as one string per
+# query; long PromQL lines cannot be wrapped. They are linted with the same
+# relaxed rules but a wider line-length (dashboards/.yamllint.yml).
+ignore: |
+  dashboards/
+
 rules:
   line-length:
     max: 220

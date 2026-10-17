@@ -246,3 +246,46 @@ sum by (service) (rate(http_requests_total{status=~"5.."}[5m]))
 /
 sum by (service) (rate(http_requests_total[5m]))
 ```
+
+### Step 7: Custom metrics (prometheus-adapter) + Grafana dashboards
+
+**prometheus-adapter** (part of the `kube-prometheus-stack` chart) reads the
+Prometheus API and exposes a per-pod custom metric via
+`custom.metrics.k8s.io/v1beta1`:
+
+- `api_requests_per_minute` =
+  `sum(rate(http_requests_total{route!="/health"}[2m])) * 60` per pod, with
+  `namespace`/`pod` mapped as Kubernetes resources from the scraped series.
+  The `route="/health"` filter excludes healthcheck traffic so probes cannot
+  pin the replica count.
+
+The three API HPAs (astrology, booking, payment) consume this metric with a
+target of **20 requests/minute per pod**. The frontend has no metrics endpoint
+and is NOT scaled by this metric.
+
+Enable it with a `--reuse-values` upgrade on top of the existing release:
+
+```bash
+helm upgrade monitoring prometheus-community/kube-prometheus-stack \
+  -n monitoring --reuse-values -f values-prometheus-adapter.yaml
+```
+
+Verify the metric is served per-pod:
+
+```bash
+kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/astrolumina-production/pods/*/api_requests_per_minute
+```
+
+**Custom Grafana dashboards** live in `dashboards/` in this repo as
+ConfigMaps labeled `grafana_dashboard: "1"` (annotation
+`grafana_folder: AstroLumina`) — the Grafana sidecar auto-loads them into the
+"AstroLumina" folder. Dev/staging/production sharing isn't needed: all
+dashboards are in this repo and re-applied per environment with
+`kubectl apply -k dashboards/` from the repo root on the CP.
+
+Dashboards: `frontend`, `astrology API`, `booking API`, `payment API` —
+each API dashboard shows HPA replicas, pod readiness, request rate per pod /
+total (excluding `/health`), request mix by status, 5xx ratio, latency
+(p50/p95/p99), top routes, CPU/memory per pod, and restart count over 1h.
+The frontend dashboard omits request panels because the static Nginx image
+has no `/metrics` endpoint.

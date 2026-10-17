@@ -1,0 +1,34 @@
+---
+# Extra values for the existing `monitoring` kube-prometheus-stack release.
+# Apply with an upgrade (all values currently in use are preserved by
+# --reuse-values, this overlay only adds the prometheus-adapter piece):
+#
+#   helm upgrade monitoring prometheus-community/kube-prometheus-stack \
+#     -n monitoring --reuse-values -f values-prometheus-adapter.yaml
+#
+# The adapter exposes a per-pod custom metric,
+#   api_requests_per_minute = sum(rate(http_requests_total{route!="/health"}[2m])) * 60
+# which the AstroLumina API HPAs consume as their scaling signal
+# (target: 20 requests/minute per pod). Healthcheck traffic (route="/health")
+# is excluded so replica count is not pinned by liveness probes.
+prometheus-adapter:
+  enabled: true
+  prometheus:
+    url: http://monitoring-kube-prometheus-prometheus.monitoring.svc
+    port: 9090
+  rules:
+    default: true
+    custom:
+      - seriesQuery: 'http_requests_total{namespace!="",pod!=""}'
+        resources:
+          overrides:
+            namespace:
+              resource: namespace
+            pod:
+              resource: pod
+        name:
+          matches: '^http_requests_total$'
+          as: api_requests_per_minute
+        metricsQuery: 'sum(rate(http_requests_total{route!="/health",<<.LabelMatchers>>}[2m])) * 60 by (<<.GroupBy>>)'
+  serviceMonitor:
+    enabled: true
