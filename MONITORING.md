@@ -249,9 +249,12 @@ sum by (service) (rate(http_requests_total[5m]))
 
 ### Step 7: Custom metrics (prometheus-adapter) + Grafana dashboards
 
-**prometheus-adapter** (part of the `kube-prometheus-stack` chart) reads the
-Prometheus API and exposes a per-pod custom metric via
-`custom.metrics.k8s.io/v1beta1`:
+**prometheus-adapter** reads the Prometheus API and exposes a per-pod custom
+metric via `custom.metrics.k8s.io/v1beta1`. It runs as its own Helm release:
+kube-prometheus-stack 9x+ no longer bundles a prometheus-adapter subchart, so
+adding a `prometheus-adapter:` section to the kube-prometheus-stack values
+silently does nothing (helm reports a successful upgrade, but no adapter
+manifests are rendered).
 
 - `api_requests_per_minute` =
   `sum by (namespace, pod) (rate(http_requests_total{route!="/health"}[2m])) * 60` per pod, with
@@ -263,16 +266,23 @@ The three API HPAs (astrology, booking, payment) consume this metric with a
 target of **20 requests/minute per pod**. The frontend has no metrics endpoint
 and is NOT scaled by this metric.
 
-Enable it with a `--reuse-values` upgrade on top of the existing release:
+Enable it as a standalone release from the prometheus-community repo (already
+added when the monitoring stack was installed):
 
 ```bash
-helm upgrade monitoring prometheus-community/kube-prometheus-stack \
-  -n monitoring --reuse-values -f values-prometheus-adapter.yaml
+helm upgrade --install prometheus-adapter prometheus-community/prometheus-adapter \
+  -n monitoring -f values-prometheus-adapter.yaml --version 5.3.0
 ```
 
-Verify the metric is served per-pod:
+The values file uses the standalone chart's top-level keys — deliberately not
+nested under `prometheus-adapter:` (that nesting belonged to the removed
+kube-prometheus-stack subchart and is ignored).
+
+Verify: the aggregated APIService must become `Available=True` (~30-60s after
+install), and the metric must be served per-pod:
 
 ```bash
+kubectl get apiservice v1beta1.custom.metrics.k8s.io
 kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/astrolumina-production/pods/*/api_requests_per_minute
 ```
 
