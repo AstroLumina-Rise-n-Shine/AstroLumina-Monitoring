@@ -1,8 +1,9 @@
 ---
 # Scrapes the staging LIVE color (namespace astrolumina-staging). Targeting
 # the *-live Services (not blue/green directly) keeps the scrape target
-# stable across blue/green flips. The frontend is intentionally absent: it is
-# static Nginx with no metrics endpoint.
+# stable across blue/green flips. The frontend is included too: the
+# nginx-prometheus-exporter sidecar serves its nginx_* metrics on the
+# `metrics` port (9113) of the same *-live Service.
 # The `release: monitoring` label must match the Prometheus
 # serviceMonitorSelector (default of the kube-prometheus-stack release
 # called `monitoring`); without it Prometheus ignores these objects.
@@ -73,6 +74,31 @@ spec:
       app.kubernetes.io/component: payment-api
   endpoints:
     - port: http
+      path: /metrics
+      interval: 30s
+      honorLabels: true
+---
+# Nginx metrics for the frontend (nginx-prometheus-exporter sidecar on the
+# *-live Service, port 9113). Kept as its own ServiceMonitor so a missing
+# target is easy to spot on the Prometheus targets page.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: astrolumina-staging-frontend
+  namespace: monitoring
+  labels:
+    release: monitoring
+    app.kubernetes.io/part-of: astrolumina
+spec:
+  namespaceSelector:
+    matchNames:
+      - astrolumina-staging
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/component: frontend
+  endpoints:
+    - port: metrics
       path: /metrics
       interval: 30s
       honorLabels: true

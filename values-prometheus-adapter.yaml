@@ -9,11 +9,14 @@
 #   helm upgrade --install prometheus-adapter prometheus-community/prometheus-adapter \
 #     -n monitoring -f values-prometheus-adapter.yaml --version 5.3.0
 #
-# The adapter exposes a per-pod custom metric,
-#   api_requests_per_minute = sum(rate(http_requests_total{route!="/health"}[2m])) * 60
-# which the AstroLumina API HPAs consume as their scaling signal
-# (target: 20 requests/minute per pod). Healthcheck traffic (route="/health")
-# is excluded so replica count is not pinned by liveness probes.
+# The adapter exposes two per-pod custom metrics:
+#   api_requests_per_minute      = sum(rate(http_requests_total{route!="/health"}[2m])) * 60
+#   frontend_requests_per_minute = sum(rate(nginx_http_requests_total[2m])) * 60
+# consumed by the AstroLumina HPAs as their scaling signal (target: 20
+# requests/minute per pod). The API rule excludes route="/health" so
+# healthcheck traffic cannot pin replica count; the frontend rule counts
+# everything Nginx sees (kubelet probes included: ~6/min floor, well below
+# the 20/min target).
 
 prometheus:
   url: http://monitoring-kube-prometheus-prometheus.monitoring.svc
@@ -33,6 +36,17 @@ rules:
         matches: '^http_requests_total$'
         as: api_requests_per_minute
       metricsQuery: 'sum by (<<.GroupBy>>) (rate(http_requests_total{route!="/health",<<.LabelMatchers>>}[2m])) * 60'
+    - seriesQuery: 'nginx_http_requests_total{namespace!="",pod!=""}'
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      name:
+        matches: '^nginx_http_requests_total$'
+        as: frontend_requests_per_minute
+      metricsQuery: 'sum by (<<.GroupBy>>) (rate(nginx_http_requests_total{<<.LabelMatchers>>}[2m])) * 60'
 
 # The first live run OOMKilled and liveness-restarted under the old
 # 250m/192Mi limits (exit code 137 plus probe timeouts) while the HPAs
