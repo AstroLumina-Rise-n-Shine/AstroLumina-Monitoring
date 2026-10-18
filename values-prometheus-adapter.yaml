@@ -34,10 +34,35 @@ rules:
         as: api_requests_per_minute
       metricsQuery: 'sum by (<<.GroupBy>>) (rate(http_requests_total{route!="/health",<<.LabelMatchers>>}[2m])) * 60'
 
+# The first live run OOMKilled and liveness-restarted under the old
+# 250m/192Mi limits (exit code 137 plus probe timeouts) while the HPAs
+# depended on its custom metrics API — give it real headroom.
 resources:
   requests:
-    cpu: 50m
-    memory: 64Mi
+    cpu: 100m
+    memory: 128Mi
   limits:
-    cpu: 250m
-    memory: 192Mi
+    cpu: 500m
+    memory: 512Mi
+
+# Probe overrides (chart defaults: timeoutSeconds 5 / failureThreshold 3).
+# /healthz is served by the same process that answers metric queries, so
+# tolerate occasionally slow responses instead of SIGKILLing a busy adapter.
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: https
+    scheme: HTTPS
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 6
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: https
+    scheme: HTTPS
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 6

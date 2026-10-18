@@ -6,6 +6,11 @@
 # The `release: monitoring` label must match the Prometheus
 # serviceMonitorSelector (default of the kube-prometheus-stack release
 # called `monitoring`); without it Prometheus ignores these objects.
+# `honorLabels: true` below is intentional: it keeps each app's own
+# `service="<app>"` label. With the default (false) the Operator's target
+# label service=<svc-name> wins and the app's own label is renamed to
+# exported_service — which silently breaks every dashboard/HPA query that
+# filters on service="astrology-api" etc.
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -26,6 +31,7 @@ spec:
     - port: http
       path: /metrics
       interval: 30s
+      honorLabels: true
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -47,6 +53,7 @@ spec:
     - port: http
       path: /metrics
       interval: 30s
+      honorLabels: true
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -68,3 +75,4 @@ spec:
     - port: http
       path: /metrics
       interval: 30s
+      honorLabels: true
