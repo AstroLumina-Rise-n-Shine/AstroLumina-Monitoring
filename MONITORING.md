@@ -215,13 +215,17 @@ our apps will live in the separate AstroLumina-Helm repo and get consumed
 declaratively (RKE2 `HelmChart`/`HelmChartConfig`, later ArgoCD/Flux) — that
 is the GitOps path, while this repo remains the plain-manifest source of truth.
 
-### Step 6: Application metrics (AstroLumina APIs)
+### Step 6: Application metrics (AstroLumina APIs + frontend)
 
 The three Node APIs (astrology, booking, payment) expose Prometheus metrics
 on `GET /metrics` (added with `@prometheus-io/client`: Node.js defaults plus
 `http_requests_total` and `http_request_duration_seconds`, all carrying a
-constant `service="<api>"` label). The frontend is static Nginx with no
-metrics endpoint — its traffic is visible via the Traefik metrics instead.
+constant `service="<api>"` label). The frontend serves static files through
+Nginx, but on staging/production it also runs the nginx-prometheus-exporter
+sidecar: Nginx `stub_status` (localhost-only) is re-exposed as
+`nginx_http_requests_total` / `nginx_connections_*` on the `metrics` port
+(9113) of the same `*-live` Service. Development runs no monitoring stack at
+all by design (ArgoCD alone).
 
 Discovery wiring lives in `servicemonitors/` (one file per environment,
 applied with `kubectl apply -k servicemonitors/` from this repo root on the
@@ -270,8 +274,12 @@ manifests are rendered).
   pin the replica count.
 
 The three API HPAs (astrology, booking, payment) consume this metric with a
-target of **20 requests/minute per pod**. The frontend has no metrics endpoint
-and is NOT scaled by this metric.
+target of **20 requests/minute per pod**. A second rule scales the frontend
+HPA: `frontend_requests_per_minute` =
+`sum by (namespace, pod) (rate(nginx_http_requests_total[2m])) * 60`, same
+**20 requests/minute per pod** target. This one counts everything Nginx
+sees — kubelet probes included (~6/min floor) — which sits well below the
+target, so idle pods do not scale.
 
 Enable it as a standalone release from the prometheus-community repo (already
 added when the monitoring stack was installed):
@@ -291,6 +299,7 @@ install), and the metric must be served per-pod:
 ```bash
 kubectl get apiservice v1beta1.custom.metrics.k8s.io
 kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/astrolumina-production/pods/*/api_requests_per_minute
+kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/astrolumina-production/pods/*/frontend_requests_per_minute
 ```
 
 **Custom Grafana dashboards** live in `dashboards/` in this repo as
@@ -304,5 +313,6 @@ Dashboards: `frontend`, `astrology API`, `booking API`, `payment API` —
 each API dashboard shows HPA replicas, pod readiness, request rate per pod /
 total (excluding `/health`), request mix by status, 5xx ratio, latency
 (p50/p95/p99), top routes, CPU/memory per pod, and restart count over 1h.
-The frontend dashboard omits request panels because the static Nginx image
-has no `/metrics` endpoint.
+The frontend dashboard shows HPA replicas, pod readiness, CPU/memory,
+restarts, and — since the nginx-prometheus-exporter sidecar — requests per
+minute per pod and active connections.
