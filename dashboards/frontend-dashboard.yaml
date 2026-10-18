@@ -10,107 +10,798 @@ metadata:
   annotations:
     grafana_folder: AstroLumina
 data:
-  frontend.json: "{\n  \"uid\": \"astrolumina-frontend\",\n  \"title\": \"AstroLumina Frontend\",\n  \"tags\": [\n\
-    \    \"astrolumina\"\n  ],\n  \"timezone\": \"browser\",\n  \"schemaVersion\": 41,\n  \"version\": 1,\n  \"\
-    refresh\": \"30s\",\n  \"time\": {\n    \"from\": \"now-6h\",\n    \"to\": \"now\"\n  },\n  \"templating\":\
-    \ {\n    \"list\": [\n      {\n        \"name\": \"ds\",\n        \"label\": \"Datasource\",\n        \"type\"\
-    : \"datasource\",\n        \"query\": {\n          \"type\": \"prometheus\",\n          \"query\": \"prometheus\"\
-    \n        },\n        \"current\": {\n          \"text\": \"Prometheus\",\n          \"value\": \"prometheus\"\
-    \n        },\n        \"hide\": 0,\n        \"refresh\": 1,\n        \"options\": []\n      },\n      {\n  \
-    \      \"name\": \"env\",\n        \"label\": \"Environment\",\n        \"type\": \"custom\",\n        \"query\"\
-    : \"development,staging,production\",\n        \"current\": {\n          \"text\": \"production\",\n       \
-    \   \"value\": \"production\"\n        },\n        \"options\": [\n          {\n            \"selected\": false,\n\
-    \            \"value\": \"development\",\n            \"text\": \"development\"\n          },\n          {\n\
-    \            \"selected\": false,\n            \"value\": \"staging\",\n            \"text\": \"staging\"\n\
-    \          },\n          {\n            \"selected\": true,\n            \"value\": \"production\",\n      \
-    \      \"text\": \"production\"\n          }\n        ],\n        \"hide\": 0,\n        \"includeAll\": false,\n\
-    \        \"multi\": false\n      }\n    ]\n  },\n  \"panels\": [\n    {\n      \"id\": null,\n      \"title\"\
-    : \"HPA replicas (current vs desired)\",\n      \"type\": \"stat\",\n      \"datasource\": {\n        \"type\"\
-    : \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 4,\n        \"\
-    w\": 6,\n        \"x\": 0,\n        \"y\": 0\n      },\n      \"description\": \"Frontend HPA: frontend_requests_per_minute\
-    \ (Nginx request rate per pod, 20/min target, via the nginx-prometheus-exporter sidecar) plus CPU.\",\n    \
-    \  \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"kube_horizontalpodautoscaler_status_current_replicas{namespace=~\\\
-    \"astrolumina-$env\\\",horizontalpodautoscaler=~\\\"frontend.*\\\"}\",\n          \"legendFormat\": \"current\"\
-    ,\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n    \
-    \      }\n        },\n        {\n          \"refId\": \"B\",\n          \"expr\": \"kube_horizontalpodautoscaler_status_desired_replicas{namespace=~\\\
-    \"astrolumina-$env\\\",horizontalpodautoscaler=~\\\"frontend.*\\\"}\",\n          \"legendFormat\": \"desired\"\
-    ,\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n    \
-    \      }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"short\"\
-    \n        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"reduceOptions\": {\n    \
-    \      \"calcs\": [\n            \"lastNotNull\"\n          ],\n          \"fields\": \"\",\n          \"values\"\
-    : false\n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"Pods ready / desired\",\n\
-    \      \"type\": \"stat\",\n      \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"\
-    ${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 4,\n        \"w\": 6,\n        \"x\": 6,\n        \"\
-    y\": 0\n      },\n      \"description\": \"\",\n      \"targets\": [\n        {\n          \"refId\": \"A\"\
-    ,\n          \"expr\": \"kube_deployment_status_replicas_ready{namespace=~\\\"astrolumina-$env\\\",deployment=~\\\
-    \"frontend.*\\\"}\",\n          \"legendFormat\": \"ready\",\n          \"datasource\": {\n            \"type\"\
-    : \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        },\n        {\n          \"refId\":\
-    \ \"B\",\n          \"expr\": \"kube_deployment_spec_replicas{namespace=~\\\"astrolumina-$env\\\",deployment=~\\\
-    \"frontend.*\\\"}\",\n          \"legendFormat\": \"desired\",\n          \"datasource\": {\n            \"\
-    type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        }\n      ],\n      \"fieldConfig\"\
-    : {\n        \"defaults\": {\n          \"unit\": \"short\"\n        },\n        \"overrides\": []\n      },\n\
-    \      \"options\": {\n        \"reduceOptions\": {\n          \"calcs\": [\n            \"lastNotNull\"\n \
-    \         ],\n          \"fields\": \"\",\n          \"values\": false\n        }\n      }\n    },\n    {\n\
-    \      \"id\": null,\n      \"title\": \"CPU per pod\",\n      \"type\": \"timeseries\",\n      \"datasource\"\
-    : {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n       \
-    \ \"h\": 8,\n        \"w\": 12,\n        \"x\": 0,\n        \"y\": 4\n      },\n      \"description\": \"\"\
-    ,\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\\\
-    \"astrolumina-$env\\\",pod=~\\\"frontend.*\\\",container!=\\\"\\\"}[5m]))\",\n          \"legendFormat\": \"\
-    {{pod}}\",\n          \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\
-    \n          }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"\
-    short\"\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"legend\": {\n    \
-    \      \"displayMode\": \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n         \
-    \   \"lastNotNull\"\n          ]\n        },\n        \"tooltip\": {\n          \"mode\": \"multi\",\n     \
-    \     \"sort\": \"none\"\n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"Memory\
-    \ working set per pod\",\n      \"type\": \"timeseries\",\n      \"datasource\": {\n        \"type\": \"prometheus\"\
-    ,\n        \"uid\": \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n     \
-    \   \"x\": 12,\n        \"y\": 4\n      },\n      \"description\": \"\",\n      \"targets\": [\n        {\n\
-    \          \"refId\": \"A\",\n          \"expr\": \"container_memory_working_set_bytes{namespace=~\\\"astrolumina-$env\\\
-    \",pod=~\\\"frontend.*\\\",container!=\\\"\\\"}\",\n          \"legendFormat\": \"{{pod}}\",\n          \"datasource\"\
-    : {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n        }\n      ],\n\
-    \      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"bytes\"\n        },\n        \"overrides\"\
-    : []\n      },\n      \"options\": {\n        \"legend\": {\n          \"displayMode\": \"table\",\n       \
-    \   \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n          ]\n        },\n\
-    \        \"tooltip\": {\n          \"mode\": \"multi\",\n          \"sort\": \"none\"\n        }\n      }\n\
-    \    },\n    {\n      \"id\": null,\n      \"title\": \"Restarts last 1h\",\n      \"type\": \"timeseries\"\
-    ,\n      \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n      },\n      \"\
-    gridPos\": {\n        \"h\": 8,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\": 12\n      },\n      \"\
-    description\": \"\",\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"increase(kube_pod_container_status_restarts_total{namespace=~\\\
-    \"astrolumina-$env\\\",pod=~\\\"frontend.*\\\"}[1h])\",\n          \"legendFormat\": \"{{pod}}\",\n        \
-    \  \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n \
-    \       }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"short\"\n    \
-    \    },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"legend\": {\n          \"displayMode\"\
-    : \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n  \
-    \        ]\n        },\n        \"tooltip\": {\n          \"mode\": \"multi\",\n          \"sort\": \"none\"\
-    \n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"Requests per minute (per pod)\"\
-    ,\n      \"type\": \"timeseries\",\n      \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\"\
-    : \"${ds}\"\n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 0,\n    \
-    \    \"y\": 20\n      },\n      \"description\": \"nginx_http_requests_total, stub_status scraped by the exporter\
-    \ sidecar. Includes kubelet probes (~6/min floor). HPA target: 20/min per pod.\",\n      \"targets\": [\n  \
-    \      {\n          \"refId\": \"A\",\n          \"expr\": \"sum by (pod) (rate(nginx_http_requests_total{namespace=~\\\
-    \"astrolumina-$env\\\",pod=~\\\"frontend.*\\\"}[5m])) * 60\",\n          \"legendFormat\": \"{{pod}}\",\n  \
-    \        \"datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n        \
-    \  }\n        }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"short\"\n\
-    \        },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"legend\": {\n          \"\
-    displayMode\": \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\
-    \n          ]\n        },\n        \"tooltip\": {\n          \"mode\": \"multi\",\n          \"sort\": \"none\"\
-    \n        }\n      }\n    },\n    {\n      \"id\": null,\n      \"title\": \"Active connections\",\n      \"\
-    type\": \"timeseries\",\n      \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\
-    \n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 12,\n        \"y\":\
-    \ 20\n      },\n      \"description\": \"nginx_connections_active (active + reading + writing + waiting).\"\
-    ,\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n          \"expr\": \"sum by (pod) (nginx_connections_active{namespace=~\\\
-    \"astrolumina-$env\\\",pod=~\\\"frontend.*\\\"})\",\n          \"legendFormat\": \"{{pod}}\",\n          \"\
-    datasource\": {\n            \"type\": \"prometheus\",\n            \"uid\": \"${ds}\"\n          }\n      \
-    \  }\n      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"short\"\n        },\n\
-    \        \"overrides\": []\n      },\n      \"options\": {\n        \"legend\": {\n          \"displayMode\"\
-    : \"table\",\n          \"placement\": \"bottom\",\n          \"calcs\": [\n            \"lastNotNull\"\n  \
-    \        ]\n        },\n        \"tooltip\": {\n          \"mode\": \"multi\",\n          \"sort\": \"none\"\
-    \n        }\n      }\n    },\n    {\n      \"id\": 5,\n      \"title\": \"About frontend traffic\",\n      \"\
-    type\": \"text\",\n      \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"${ds}\"\n\
-    \      },\n      \"gridPos\": {\n        \"h\": 6,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\": 28\n\
-    \      },\n      \"mode\": \"markdown\",\n      \"content\": \"The frontend exposes **Nginx stub_status** through\
-    \ the `nginx-prometheus-exporter` sidecar (staging/production), so request traffic and connections are visible\
-    \ above.\\n\\n`nginx_http_requests_total` counts every request the Nginx worker sees, including kubelet probes\
-    \ (~6/min) \\u2014 the HPA target is **20 requests/minute per pod** (`frontend_requests_per_minute`).\\n\\nDevelopment\
-    \ runs no monitoring stack (ArgoCD only), so these panels stay empty if `$env=development` is selected.\"\n\
-    \    }\n  ]\n}"
+  frontend.json: |-
+    {
+      "uid": "astrolumina-frontend",
+      "title": "AstroLumina Frontend",
+      "tags": [
+        "astrolumina"
+      ],
+      "timezone": "browser",
+      "schemaVersion": 41,
+      "version": 1,
+      "refresh": "30s",
+      "time": {
+        "from": "now-6h",
+        "to": "now"
+      },
+      "templating": {
+        "list": [
+          {
+            "name": "ds",
+            "label": "Datasource",
+            "type": "datasource",
+            "query": {
+              "type": "prometheus",
+              "query": "prometheus"
+            },
+            "current": {
+              "text": "Prometheus",
+              "value": "prometheus"
+            },
+            "hide": 0,
+            "refresh": 1,
+            "options": []
+          },
+          {
+            "name": "env",
+            "label": "Environment",
+            "type": "custom",
+            "query": "development,staging,production",
+            "current": {
+              "text": "production",
+              "value": "production"
+            },
+            "options": [
+              {
+                "selected": false,
+                "value": "development",
+                "text": "development"
+              },
+              {
+                "selected": false,
+                "value": "staging",
+                "text": "staging"
+              },
+              {
+                "selected": true,
+                "value": "production",
+                "text": "production"
+              }
+            ],
+            "hide": 0,
+            "includeAll": false,
+            "multi": false
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": null,
+          "title": "HPA replicas (current vs desired)",
+          "type": "stat",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 0,
+            "y": 0
+          },
+          "description": "Frontend HPA: frontend_requests_per_minute (Nginx request rate per pod, 20/min target, via the nginx-prometheus-exporter sidecar) plus CPU.",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=~\"astrolumina-$env\",horizontalpodautoscaler=~\"frontend.*\"}",
+              "legendFormat": "current",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            },
+            {
+              "refId": "B",
+              "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=~\"astrolumina-$env\",horizontalpodautoscaler=~\"frontend.*\"}",
+              "legendFormat": "desired",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          }
+        },
+        {
+          "id": null,
+          "title": "Pods ready / desired",
+          "type": "stat",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 6,
+            "y": 0
+          },
+          "description": "",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "kube_deployment_status_replicas_ready{namespace=~\"astrolumina-$env\",deployment=~\"frontend.*\"}",
+              "legendFormat": "ready",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            },
+            {
+              "refId": "B",
+              "expr": "kube_deployment_spec_replicas{namespace=~\"astrolumina-$env\",deployment=~\"frontend.*\"}",
+              "legendFormat": "desired",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          }
+        },
+        {
+          "id": null,
+          "type": "stat",
+          "title": "HPA signal - avg requests/min per pod (target 20)",
+          "description": "Same signal the HPA uses to scale the frontend (frontend_requests_per_minute).",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 12,
+            "y": 0
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "decimals": 1,
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 15
+                  },
+                  {
+                    "color": "red",
+                    "value": 20
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(rate(nginx_http_requests_total{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"}[2m])) * 60 / count(count by (pod) (nginx_http_requests_total{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"}))",
+              "legendFormat": "HPA signal - avg requests/min per pod (target 20)",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            }
+          ]
+        },
+        {
+          "id": null,
+          "type": "stat",
+          "title": "Nginx exporter health (nginx_up)",
+          "description": "1 = exporter scrapes nginx stub_status OK (one value per live pod).",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 18,
+            "y": 0
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "DOWN",
+                      "color": "red"
+                    },
+                    "1": {
+                      "text": "UP",
+                      "color": "green"
+                    }
+                  }
+                }
+              ],
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "textMode": "value_and_name"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "nginx_up{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"}",
+              "legendFormat": "{{pod}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Requests per minute (per pod)",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 4
+          },
+          "description": "nginx_http_requests_total, stub_status scraped by the exporter sidecar. Includes kubelet probes (~6/min floor). HPA target: 20/min per pod.",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (pod) (rate(nginx_http_requests_total{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"}[5m])) * 60",
+              "legendFormat": "{{pod}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 20
+                  }
+                ]
+              },
+              "custom": {
+                "thresholdsStyle": {
+                  "mode": "dashed"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          }
+        },
+        {
+          "id": null,
+          "type": "timeseries",
+          "title": "Connections by state (reading / writing / waiting)",
+          "description": "nginx stub_status connection states (waiting = idle keep-alive).",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "fillOpacity": 25,
+                "gradientMode": "opacity",
+                "showPoints": "never",
+                "stacking": {
+                  "mode": "normal"
+                },
+                "spanNulls": true
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "reading"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#5794F2"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "writing"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#FF9830"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "waiting"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#8AB8FF"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true,
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              },
+              "expr": "sum(nginx_connections_reading{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"})",
+              "legendFormat": "reading"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              },
+              "expr": "sum(nginx_connections_writing{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"})",
+              "legendFormat": "writing"
+            },
+            {
+              "refId": "C",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              },
+              "expr": "sum(nginx_connections_waiting{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"})",
+              "legendFormat": "waiting"
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Active connections",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 12
+          },
+          "description": "nginx_connections_active (active + reading + writing + waiting).",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (pod) (nginx_connections_active{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"})",
+              "legendFormat": "{{pod}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          }
+        },
+        {
+          "id": null,
+          "type": "timeseries",
+          "title": "Connections accepted vs handled (per min)",
+          "description": "A growing gap between accepted and handled connections indicates nginx resource exhaustion.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 12
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 10,
+                "showPoints": "never",
+                "spanNulls": true
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "accepted"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#5794F2"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "handled"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#73BF69"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true,
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              },
+              "expr": "sum(rate(nginx_connections_accepted{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"}[5m])) * 60",
+              "legendFormat": "accepted"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              },
+              "expr": "sum(rate(nginx_connections_handled{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"}[5m])) * 60",
+              "legendFormat": "handled"
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "CPU per pod",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 20
+          },
+          "description": "",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\",container!=\"\"}[5m]))",
+              "legendFormat": "{{pod}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          }
+        },
+        {
+          "id": null,
+          "title": "Memory working set per pod",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 20
+          },
+          "description": "",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "container_memory_working_set_bytes{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\",container!=\"\"}",
+              "legendFormat": "{{pod}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          }
+        },
+        {
+          "id": null,
+          "title": "Restarts last 1h",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 28
+          },
+          "description": "",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "increase(kube_pod_container_status_restarts_total{namespace=~\"astrolumina-$env\",pod=~\"frontend.*\"}[1h])",
+              "legendFormat": "{{pod}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          }
+        },
+        {
+          "id": 5,
+          "title": "About frontend traffic",
+          "type": "text",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 36
+          },
+          "mode": "markdown",
+          "content": "The frontend exposes **Nginx stub_status** through the `nginx-prometheus-exporter` sidecar (staging/production), so request traffic and connections are visible above.\n\n`nginx_http_requests_total` counts every request the Nginx worker sees, including kubelet probes (~6/min) — the HPA target is **20 requests/minute per pod** (`frontend_requests_per_minute`).\n\nDevelopment runs no monitoring stack (ArgoCD only), so these panels stay empty if `$env=development` is selected.",
+          "options": {
+            "mode": "markdown",
+            "content": "### Frontend traffic metrics\n\nMetrics come from **nginx stub_status** via the `nginx-prometheus-exporter` sidecar.\n\n- **Available:** total requests, active connections, connection states - the HPA scales on `frontend_requests_per_minute` (target **20/min per pod**, includes a ~6/min kubelet-probe floor).\n- **Not available:** per-status-code counts and request latency (stub_status does not expose them; see the API dashboards for those)."
+          }
+        }
+      ]
+    }
