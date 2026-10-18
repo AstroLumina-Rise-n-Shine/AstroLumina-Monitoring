@@ -232,6 +232,13 @@ Staging/production target the `*-live` Services so scrapes survive blue/green
 flips. Pickup is automatic at the next discovery refresh (1-2 minutes), no
 Prometheus restart needed.
 
+The ServiceMonitor endpoints set `honorLabels: true` on purpose: each API
+already stamps a constant `service="<api>"` label on its metrics, and with
+the default (`false`) the Operator's target label `service=<svc-name>` wins
+the conflict and the app's label is renamed to `exported_service` — every
+dashboard and HPA query filtering on `service="astrology-api"` would then
+silently match nothing.
+
 Starter queries (Grafana Explore or Prometheus UI):
 
 ```promql
