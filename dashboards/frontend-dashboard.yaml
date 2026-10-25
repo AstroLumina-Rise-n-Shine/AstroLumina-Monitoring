@@ -802,6 +802,83 @@ data:
             "mode": "markdown",
             "content": "### Frontend traffic metrics\n\nMetrics come from **nginx stub_status** via the `nginx-prometheus-exporter` sidecar.\n\n- **Available:** total requests, active connections, connection states - the HPA scales on `frontend_requests_per_minute` (target **20/min per pod**, includes a ~6/min kubelet-probe floor).\n- **Not available:** per-status-code counts and request latency (stub_status does not expose them; see the API dashboards for those)."
           }
+        },
+        {
+          "id": null,
+          "title": "Blue / Green - Live Traffic Color",
+          "type": "table",
+          "description": "Which deployment variant currently owns LIVE traffic per service (staging/production). Reads the variant label from the *-live Services.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 24,
+            "x": 0,
+            "y": 43
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true,
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${ds}"
+              },
+              "expr": "kube_service_labels{namespace=~\"astrolumina-$env\",service=~\"^(frontend|astrology-api|booking-api|payment-api)-live$\",label_variant!=\"\"}",
+              "legendFormat": "{{service}}"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "includeByName": {
+                  "service": true,
+                  "label_variant": true
+                },
+                "renameByName": {
+                  "service": "Service",
+                  "label_variant": "Live color"
+                }
+              }
+            }
+          ],
+          "valueMappings": [
+            {
+              "options": {
+                "blue": {
+                  "text": "blue",
+                  "color": "#5794F2"
+                },
+                "green": {
+                  "text": "green",
+                  "color": "#73BF69"
+                }
+              },
+              "type": "value"
+            }
+          ]
         }
       ]
     }
